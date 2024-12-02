@@ -14,34 +14,19 @@ def count_safe_reports(reports):
 
 
 def validate_report(report):
-    consistent = lambda x, y: sorted([x, y])[report[0] > report[1]] == x
     bound = lambda x, y: 1 <= abs(x - y) <= 3
-    results = all([c(*v) for v, c in product(pairwise(report), [consistent, bound])])
-    if results:
-        return results
-    second = any(second_try(report))
-    if second:
-        print(report)
-
-    return second
+    check_sorted = lambda arr: arr == sorted(arr) or arr == sorted(arr, reverse=True)
+    return any(
+        (check_sorted(s) and all(bound(*v) for v in pairwise(s)))
+        for s in [report] + list(index_skipper(report))
+    )
 
 
-def second_try(report):
-    bound = lambda x, y: 1 <= abs(x - y) <= 3
-    results = []
-    for i in range(0, len(report)):
-        new_report = [*report]
-        new_report.pop(i)
-        consistent = False
-        consistent = new_report == sorted(new_report) or new_report == sorted(
-            new_report, reverse=True
-        )
-        current = (
-            all([c(*v) for v, c in product(pairwise(new_report), [bound])])
-            and consistent
-        )
-        results.append(current)
-    return results
+def index_skipper(iterable):
+    for i in range(len(iterable)):
+        copied = [*iterable]
+        copied.pop(i)
+        yield copied
 
 
 def process_content(content):
